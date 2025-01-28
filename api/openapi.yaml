@@ -1,0 +1,658 @@
+openapi: 3.0.0
+info:
+  description: "UEDAF Event Exposure Service.  \n© 2023, 3GPP Organizational Partners\
+    \ (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  \nAll rights reserved.\n"
+  title: Nuedaf_EventExposure
+  version: 1.2.3
+externalDocs:
+  description: 3GPP TS 29.518 V17.10.0; 5G System; Access and Mobility Management
+    Services
+  url: https://www.3gpp.org/ftp/Specs/archive/29_series/29.518/
+servers:
+- url: "{apiRoot}/nuedaf-evts/v1"
+  variables:
+    apiRoot:
+      default: https://example.com
+      description: apiRoot as defined in clause 4.4 of 3GPP TS 29.501
+security:
+- {}
+- oAuth2ClientCredentials:
+  - nuedaf-evts
+paths:
+  /subscriptions:
+    post:
+      callbacks:
+        onEventReport:
+          '{$request.body#/subscription/eventNotifyUri}':
+            post:
+              operationId: onEventReport_Post
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/UedafEventNotification'
+                required: true
+              responses:
+                "204":
+                  description: Successful acknowledgement
+                default:
+                  description: Unexpected error
+              summary: Event Notificaiton Delivery
+              x-callback-request: true
+        onSubscriptionIdChangeEvtReport:
+          '{$request.body#/subscription/subsChangeNotifyUri}':
+            post:
+              operationId: onSubscriptionIdChangeEvtReport_Post
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/UedafEventNotification'
+                required: true
+              responses:
+                "204":
+                  description: Successful acknowledgement
+                default:
+                  description: Unexpected error
+              summary: Event Notificaiton Delivery For Subscription Id Change
+              x-callback-request: true
+      operationId: CreateSubscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UedafCreateEventSubscription'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UedafCreatedEventSubscription'
+          description: Subsription Created
+          headers:
+            Location:
+              description: "Contains the URI of the newly created resource, according\
+                \ to the structure: {apiRoot}/nuedaf-evts/<apiVersion>/subscriptions/{subscriptionId}"
+              explode: false
+              required: true
+              schema:
+                type: string
+              style: simple
+        default:
+          description: Unexpected error
+      summary: Nuedaf_EventExposure Subscribe service Operation
+      tags:
+      - Subscriptions collection (Collection)
+  /subscriptions/{subscriptionId}:
+    delete:
+      operationId: DeleteSubscription
+      parameters:
+      - description: Unique ID of the subscription to be deleted
+        explode: false
+        in: path
+        name: subscriptionId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Subsription deleted successfully
+        default:
+          description: Unexpected error
+      summary: Nuedaf_EventExposure Unsubscribe service Operation
+      tags:
+      - Individual subscription (Document)
+components:
+  schemas:
+    UedafEventSubscription:
+      description: Represents an individual event subscription resource on UEDAF
+      example:
+        eventNotifyUri: eventNotifyUri
+        eventRequest:
+          maxResponseTime: 6
+          minInterval: 1
+          nextReport: 2000-01-23T04:56:07.000+00:00
+          nextPeriodicReportTime: 2000-01-23T04:56:07.000+00:00
+          type: null
+          maxReports: 0
+        options:
+          trigger: null
+          expiry: 2000-01-23T04:56:07.000+00:00
+          maxReports: 5
+          repPeriod: 5
+          sampRatio: 23
+        tgtUe:
+          supis:
+          - "208950000000031"
+      properties:
+        eventRequest:
+          $ref: '#/components/schemas/UedafEvent'
+        eventNotifyUri:
+          description: String providing an URI formatted according to RFC 3986.
+          type: string
+        options:
+          $ref: '#/components/schemas/UedafEventMode'
+        tgtUe:
+          $ref: '#/components/schemas/TargetUeInformation'
+      required:
+      - eventNotifyUri
+      - eventRequest
+      type: object
+    UedafEvent:
+      description: Describes an event to be subscribed
+      example:
+        maxResponseTime: 6
+        minInterval: 1
+        nextReport: 2000-01-23T04:56:07.000+00:00
+        nextPeriodicReportTime: 2000-01-23T04:56:07.000+00:00
+        type: null
+        maxReports: 0
+      properties:
+        type:
+          $ref: '#/components/schemas/UedafEventType'
+        maxReports:
+          type: integer
+        maxResponseTime:
+          description: indicating a time in seconds.
+          type: integer
+        minInterval:
+          description: indicating a time in seconds.
+          type: integer
+        nextReport:
+          description: string with format 'date-time' as defined in OpenAPI.
+          format: date-time
+          type: string
+        nextPeriodicReportTime:
+          description: string with format 'date-time' as defined in OpenAPI.
+          format: date-time
+          type: string
+      required:
+      - type
+      type: object
+    UedafEventNotification:
+      description: Data within a UEDAF Event Notification request
+      example:
+        eventSubsSyncInfo:
+          subscriptionInfo:
+            subId: subId
+            oldSubId: oldSubId
+        reportEvent:
+          timeStamp: 2000-01-23T04:56:07.000+00:00
+          phyUELevelInfos:
+          - supi: "208950000000031"
+            cell_id: "2127"
+            channel_quality_indicator: 13
+            SNR: 23.2
+            rsrp: -21.2
+            rsrq: -21.2
+            avg_MCS_uplink: 12.2
+            avg_MCS_downlink: 12.2
+            retransmission_uplink: 12
+            retransmission_downlink: 17
+          - supi: "208950000000032"
+            cell_id: "2128"
+            channel_quality_indicator: 12
+            SNR: 23.8
+            rsrp: -21.2
+            rsrq: -20.2
+            avg_MCS_uplink: 14.2
+            avg_MCS_downlink: 19.2
+            retransmission_uplink: 1
+            retransmission_downlink: 7
+          UeInfos:
+          - supi: "208950000000031"
+            cell_id: "2127"
+            plmn: "20895"
+            status: 5GMM-REGISTERED
+            status_timestamp: "543216421"
+          - supi: "208950000000033"
+            cell_id: "2127"
+            plmn: "20896"
+            status: 5GMM-DEREGISTERED
+            status_timestamp: "543216451"
+          state:
+            remainDuration: 9
+            active: true
+            remainReports: 7
+          type: null
+          subscriptionId: subscriptionId
+      properties:
+        reportEvent:
+          $ref: '#/components/schemas/UedafEventReport'
+        eventSubsSyncInfo:
+          $ref: '#/components/schemas/UedafEventSubsSyncInfo'
+      type: object
+    UedafEventReport:
+      description: Represents a report triggered by a subscribed event type
+      example:
+        timeStamp: 2000-01-23T04:56:07.000+00:00
+        phyUELevelInfos:
+        - supi: "208950000000031"
+          cell_id: "2127"
+          channel_quality_indicator: 13
+          SNR: 23.2
+          rsrp: -21.2
+          rsrq: -21.2
+          avg_MCS_uplink: 12.2
+          avg_MCS_downlink: 12.2
+          retransmission_uplink: 12
+          retransmission_downlink: 17
+        - supi: "208950000000032"
+          cell_id: 2128
+          channel_quality_indicator: 12
+          SNR: 23.8
+          rsrp: -21.2
+          rsrq: -20.2
+          avg_MCS_uplink: 14.2
+          avg_MCS_downlink: 19.2
+          retransmission_uplink: 1
+          retransmission_downlink: 7
+        UeInfos:
+        - supi: "208950000000031"
+          cell_id: "2127"
+          plmn: "20895"
+          status: 5GMM-REGISTERED
+          status_timestamp: "543216421"
+        - supi: "208950000000033"
+          cell_id: "2127"
+          plmn: "20896"
+          status: 5GMM-DEREGISTERED
+          status_timestamp: "543216451"
+        state:
+          remainDuration: 9
+          active: true
+          remainReports: 7
+        type: null
+        subscriptionId: subscriptionId
+      properties:
+        type:
+          $ref: '#/components/schemas/UedafEventType'
+        state:
+          $ref: '#/components/schemas/UedafEventState'
+        timeStamp:
+          description: string with format 'date-time' as defined in OpenAPI.
+          format: date-time
+          type: string
+        subscriptionId:
+          description: String providing an URI formatted according to RFC 3986.
+          type: string
+        phyUELevelInfos:
+          items:
+            $ref: '#/components/schemas/PhyUELevelInformation'
+          minItems: 1
+          type: array
+        UeInfos:
+          items:
+            $ref: '#/components/schemas/UeInformation'
+          minItems: 1
+          type: array
+      required:
+      - state
+      - timeStamp
+      - type
+      type: object
+    UedafEventMode:
+      description: Describes how the reports shall be generated by a subscribed event
+      example:
+        trigger: null
+        expiry: 2000-01-23T04:56:07.000+00:00
+        maxReports: 5
+        repPeriod: 5
+        sampRatio: 23
+      properties:
+        trigger:
+          $ref: '#/components/schemas/UedafEventTrigger'
+        maxReports:
+          type: integer
+        expiry:
+          description: string with format 'date-time' as defined in OpenAPI.
+          format: date-time
+          type: string
+        repPeriod:
+          description: indicating a time in seconds.
+          type: integer
+        sampRatio:
+          description: "Unsigned integer indicating Sampling Ratio (see clauses 4.15.1\
+            \ of 3GPP TS 23.502), expressed in percent. \n"
+          maximum: 100
+          minimum: 1
+          type: integer
+      required:
+      - trigger
+      type: object
+    UedafEventState:
+      description: Represents the state of a subscribed event
+      example:
+        remainDuration: 9
+        active: true
+        remainReports: 7
+      properties:
+        active:
+          type: boolean
+        remainReports:
+          type: integer
+        remainDuration:
+          description: indicating a time in seconds.
+          type: integer
+      required:
+      - active
+      type: object
+    UedafCreateEventSubscription:
+      description: Data within a create UEDAF event subscription request
+      example:
+        subscription:
+          eventNotifyUri: eventNotifyUri
+          eventRequest:
+            maxResponseTime: 6
+            minInterval: 1
+            nextReport: 2000-01-23T04:56:07.000+00:00
+            nextPeriodicReportTime: 2000-01-23T04:56:07.000+00:00
+            type: null
+            maxReports: 0
+          options:
+            trigger: null
+            expiry: 2000-01-23T04:56:07.000+00:00
+            maxReports: 5
+            repPeriod: 5
+            sampRatio: 2
+          tgtUe:
+            supis:
+            - "208950000000031"
+      properties:
+        subscription:
+          $ref: '#/components/schemas/UedafEventSubscription'
+      required:
+      - subscription
+      type: object
+    UedafCreatedEventSubscription:
+      description: Data within a create UEDAF event subscription response
+      example:
+        reportEvent:
+          timeStamp: 2000-01-23T04:56:07.000+00:00
+          phyUELevelInfos:
+          - supi: "208950000000031"
+            cell_id: "2127"
+            channel_quality_indicator: 13
+            SNR: 23.2
+            rsrp: -21.2
+            rsrq: -21.2
+            avg_MCS_uplink: 12.2
+            avg_MCS_downlink: 12.2
+            retransmission_uplink: 12
+            retransmission_downlink: 17
+          - supi: "208950000000032"
+            cell_id: "2128"
+            channel_quality_indicator: 12
+            SNR: 23.8
+            rsrp: -21.2
+            rsrq: -20.2
+            avg_MCS_uplink: 14.2
+            avg_MCS_downlink: 19.2
+            retransmission_uplink: 1
+            retransmission_downlink: 7
+          UeInfos:
+          - supi: "208950000000031"
+            cell_id: "2127"
+            plmn: "20895"
+            status: 5GMM-REGISTERED
+            status_timestamp: "543216421"
+          - supi: "208950000000033"
+            cell_id: "2127"
+            plmn: "20896"
+            status: 5GMM-DEREGISTERED
+            status_timestamp: "543216451"
+          state:
+            remainDuration: 9
+            active: true
+            remainReports: 7
+          type: null
+          subscriptionId: subscriptionId
+        subscription:
+          eventNotifyUri: eventNotifyUri
+          eventRequest:
+            maxResponseTime: 6
+            minInterval: 1
+            nextReport: 2000-01-23T04:56:07.000+00:00
+            nextPeriodicReportTime: 2000-01-23T04:56:07.000+00:00
+            type: null
+            maxReports: 0
+          options:
+            trigger: null
+            expiry: 2000-01-23T04:56:07.000+00:00
+            maxReports: 5
+            repPeriod: 5
+            sampRatio: 23
+          tgtUe:
+            supis:
+            - "208950000000031"
+        subscriptionId: subscriptionId
+      properties:
+        subscription:
+          $ref: '#/components/schemas/UedafEventSubscription'
+        subscriptionId:
+          description: String providing an URI formatted according to RFC 3986.
+          type: string
+        reportEvent:
+          $ref: '#/components/schemas/UedafEventReport'
+      required:
+      - subscription
+      - subscriptionId
+      type: object
+    UedafEventSubsSyncInfo:
+      description: UEDAF Event Subscriptions Information for synchronization
+      example:
+        subscriptionInfo:
+          subId: subId
+          oldSubId: oldSubId
+      properties:
+        subscriptionInfo:
+          $ref: '#/components/schemas/UedafEventSubscriptionInfo'
+      required:
+      - subscriptionInfo
+      type: object
+    UedafEventSubscriptionInfo:
+      description: Individual UEDAF Event Subscription Information
+      example:
+        subId: subId
+        oldSubId: oldSubId
+      properties:
+        subId:
+          description: String providing an URI formatted according to RFC 3986.
+          type: string
+        oldSubId:
+          description: String providing an URI formatted according to RFC 3986.
+          type: string
+      required:
+      - subId
+      type: object
+    PhyUELevelInformation:
+      allOf:
+      - required:
+        - supi
+      - required:
+        - cell_id
+      - required:
+        - channel_quality_indicator
+      - required:
+        - SNR
+      - required:
+        - rsrp
+      - required:
+        - rsrq
+      - required:
+        - avg_MCS_uplink
+      - required:
+        - avg_MCS_downlink
+      - required:
+        - retransmission_uplink
+      - required:
+        - retransmission_downlink
+      description: Represents load level information of a given NF instance.
+      example:
+        supi: "208950000000031"
+        cell_id: "2127"
+        channel_quality_indicator: 13
+        SNR: 23.2
+        rsrp: -21.2
+        rsrq: -21.2
+        avg_MCS_uplink: 12.2
+        avg_MCS_downlink: 12.2
+        retransmission_uplink: 12
+        retransmission_downlink: 17
+      properties:
+        supi:
+          description: 'Identifies a SUPI for an UE. '
+          type: string
+        cell_id:
+          description: 'Cell identifier to which the UE is connected '
+          type: string
+        channel_quality_indicator:
+          description: Channel quality indicator
+          type: integer
+        SNR:
+          description: Signal to noise ratio
+          format: float
+          type: number
+        rsrp:
+          description: Reference Signal Received Power
+          format: float
+          type: number
+        rsrq:
+          description: 'Reference Signal Received Quality '
+          format: float
+          type: number
+        avg_MCS_uplink:
+          description: Modulation used in uplink
+          format: float
+          type: number
+        avg_MCS_downlink:
+          description: Modulation used in downlink
+          format: float
+          type: number
+        retransmission_uplink:
+          description: Uplink retransmissions
+          type: integer
+        retransmission_downlink:
+          description: Downlink retransmissions
+          type: integer
+      type: object
+    UeInformation:
+      allOf:
+      - required:
+        - supi
+      - required:
+        - cell_id
+      - required:
+        - plmn
+      - required:
+        - status
+      - required:
+        - status_timestamp
+      description: Represents load level information of a given NF instance.
+      example:
+        supi: "208950000000031"
+        cell_id: "2127"
+        plmn: "20895"
+        status: 5GMM-REGISTERED
+        status_timestamp: "543216421"
+      properties:
+        supi:
+          description: 'Identifies a SUPI for an UE. '
+          type: string
+        cell_id:
+          description: 'Cell identifier to which the UE is connected '
+          type: string
+        plmn:
+          description: PLMN indicator
+          type: string
+        status:
+          description: Status indicator
+          type: string
+        status_timestamp:
+          description: Status timestamp indicator
+          type: string
+      type: object
+    UedafEventType:
+      anyOf:
+      - $ref: '#/components/schemas/UedafEventType_anyOf'
+      - type: string
+      description: Describes the supported event types of Nuedaf_EventExposure Service
+    UedafEventTrigger:
+      anyOf:
+      - $ref: '#/components/schemas/UedafEventTrigger_anyOf'
+      - type: string
+      description: Describes how UEDAF should generate the report for the event
+    Supi:
+      description: "String identifying a Supi that shall contain either an IMSI, a\
+        \ network specific identifier,\na Global Cable Identifier (GCI) or a Global\
+        \ Line Identifier (GLI) as specified in clause \n2.2A of 3GPP TS 23.003. It\
+        \ shall be formatted as follows\n - for an IMSI \"imsi-<imsi>\", where <imsi>\
+        \ shall be formatted according to clause 2.2\n   of 3GPP TS 23.003 that describes\
+        \ an IMSI.\n - for a network specific identifier \"nai-<nai>, where <nai>\
+        \ shall be formatted\n   according to clause 28.7.2 of 3GPP TS 23.003 that\
+        \ describes an NAI.\n - for a GCI \"gci-<gci>\", where <gci> shall be formatted\
+        \ according to clause 28.15.2\n   of 3GPP TS 23.003.\n - for a GLI \"gli-<gli>\"\
+        , where <gli> shall be formatted according to clause 28.16.2 of\n   3GPP TS\
+        \ 23.003.To enable that the value is used as part of an URI, the string shall\n\
+        \   only contain characters allowed according to the \"lower-with-hyphen\"\
+        \ naming convention\n   defined in 3GPP TS 29.501.\n"
+      minItems: 1
+      pattern: "^(imsi-[0-9]{5,15}|nai-.+|gci-.+|gli-.+|.+)$"
+      type: string
+    Gpsi:
+      description: "String identifying a Gpsi shall contain either an External Id\
+        \ or an MSISDN.  It shall be formatted as follows -External Identifier= \"\
+        extid-'extid', where 'extid'  shall be formatted according to clause 19.7.2\
+        \ of 3GPP TS 23.003 that describes an  External Identifier. \n"
+      minItems: 1
+      pattern: "^(msisdn-[0-9]{5,15}|extid-[^@]+@[^@]+|.+)$"
+      type: string
+    GroupId:
+      description: "String identifying a group of devices network internal globally\
+        \ unique ID which identifies a set of IMSIs, as specified in clause 19.9 of\
+        \ 3GPP TS 23.003. \n"
+      pattern: "^[A-Fa-f0-9]{8}-[0-9]{3}-[0-9]{2,3}-([A-Fa-f0-9][A-Fa-f0-9]){1,10}$"
+      type: string
+    UedafEventType_anyOf:
+      enum:
+      - PHY_LEVEL_INFORMATION
+      type: string
+    UedafEventTrigger_anyOf:
+      enum:
+      - ONE_TIME
+      - CONTINUOUS
+      - PERIODIC
+      type: string
+    TargetUeInformation:
+      description: Identifies the target UE information.
+      properties:
+        anyUe:
+          description: |
+            Identifies any UE when setting to "true". Default value is "false" if omitted.
+          type: boolean
+        supis:
+          items:
+            $ref: '#/components/schemas/Supi'
+          minItems: 1
+          type: array
+        gpsis:
+          items:
+            $ref: '#/components/schemas/Gpsi'
+          minItems: 1
+          type: array
+        intGroupIds:
+          items:
+            $ref: '#/components/schemas/GroupId'
+          minItems: 1
+          type: array
+      type: object
+  securitySchemes:
+    oAuth2ClientCredentials:
+      flows:
+        clientCredentials:
+          scopes:
+            nuedaf-evts: Access to the Nuedaf_EventExposure API
+          tokenUrl: "{nrfApiRoot}/oauth2/token"
+      type: oauth2
