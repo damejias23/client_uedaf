@@ -17,7 +17,7 @@ import (
 
 // UedafEvent Describes an event to be subscribed
 type UedafEvent struct {
-	Type UedafEventType `json:"type"`
+	Type UedafEventTypeAnyOf `json:"type"`
 	MaxReports *int32 `json:"maxReports,omitempty"`
 	// indicating a time in seconds.
 	MaxResponseTime *int32 `json:"maxResponseTime,omitempty"`
@@ -33,7 +33,7 @@ type UedafEvent struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUedafEvent(type_ UedafEventType) *UedafEvent {
+func NewUedafEvent(type_ UedafEventTypeAnyOf) *UedafEvent {
 	this := UedafEvent{}
 	this.Type = type_
 	return &this
@@ -48,9 +48,9 @@ func NewUedafEventWithDefaults() *UedafEvent {
 }
 
 // GetType returns the Type field value
-func (o *UedafEvent) GetType() UedafEventType {
+func (o *UedafEvent) GetType() UedafEventTypeAnyOf {
 	if o == nil {
-		var ret UedafEventType
+		var ret UedafEventTypeAnyOf
 		return ret
 	}
 
@@ -59,7 +59,7 @@ func (o *UedafEvent) GetType() UedafEventType {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *UedafEvent) GetTypeOk() (*UedafEventType, bool) {
+func (o *UedafEvent) GetTypeOk() (*UedafEventTypeAnyOf, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -67,7 +67,7 @@ func (o *UedafEvent) GetTypeOk() (*UedafEventType, bool) {
 }
 
 // SetType sets field value
-func (o *UedafEvent) SetType(v UedafEventType) {
+func (o *UedafEvent) SetType(v UedafEventTypeAnyOf) {
 	o.Type = v
 }
 
