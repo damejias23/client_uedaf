@@ -17,7 +17,7 @@ import (
 
 // UedafEventReport Represents a report triggered by a subscribed event type
 type UedafEventReport struct {
-	Type UedafEventType `json:"type"`
+	Type UedafEventTypeAnyOf `json:"type"`
 	State UedafEventState `json:"state"`
 	// string with format 'date-time' as defined in OpenAPI.
 	TimeStamp time.Time `json:"timeStamp"`
@@ -31,7 +31,7 @@ type UedafEventReport struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUedafEventReport(type_ UedafEventType, state UedafEventState, timeStamp time.Time) *UedafEventReport {
+func NewUedafEventReport(type_ UedafEventTypeAnyOf, state UedafEventState, timeStamp time.Time) *UedafEventReport {
 	this := UedafEventReport{}
 	this.Type = type_
 	this.State = state
@@ -48,9 +48,9 @@ func NewUedafEventReportWithDefaults() *UedafEventReport {
 }
 
 // GetType returns the Type field value
-func (o *UedafEventReport) GetType() UedafEventType {
+func (o *UedafEventReport) GetType() UedafEventTypeAnyOf {
 	if o == nil {
-		var ret UedafEventType
+		var ret UedafEventTypeAnyOf
 		return ret
 	}
 
@@ -59,7 +59,7 @@ func (o *UedafEventReport) GetType() UedafEventType {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *UedafEventReport) GetTypeOk() (*UedafEventType, bool) {
+func (o *UedafEventReport) GetTypeOk() (*UedafEventTypeAnyOf, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -67,7 +67,7 @@ func (o *UedafEventReport) GetTypeOk() (*UedafEventType, bool) {
 }
 
 // SetType sets field value
-func (o *UedafEventReport) SetType(v UedafEventType) {
+func (o *UedafEventReport) SetType(v UedafEventTypeAnyOf) {
 	o.Type = v
 }
 
