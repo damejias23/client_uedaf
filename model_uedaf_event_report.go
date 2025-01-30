@@ -163,7 +163,8 @@ func (o *UedafEventReport) GetPhyUELevelInfos() []PhyUELevelInformation {
 // GetPhyUELevelInfosOk returns a tuple with the PhyUELevelInfos field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *UedafEventReport) GetPhyUELevelInfosOk() ([]PhyUELevelInformation, bool) {
-	if o == nil || o.PhyUELevelInfos == nil {
+	// if o == nil || o.PhyUELevelInfos == nil {
+	if o == nil {
 		return nil, false
 	}
 	return o.PhyUELevelInfos, true
